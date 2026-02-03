@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Card Game</title>
+  <style>
+    /* General Styles */
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #6d83f2, #b77cf8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: white;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+    }
+
+    .game-container {
+      display: flex;
+      flex-wrap: wrap;
+      width: 80vw;
+      max-width: 600px;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    /* Card Styles */
+    .card {
+      width: 80px;
+      height: 120px;
+      background: linear-gradient(135deg, #ffffff, #e0e0e0);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      perspective: 1000px;
+    }
+
+    .card:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #6d83f2, #b77cf8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-back {
+      background: white;
+      transform: rotateY(180deg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+    }
+
+    /* Win Message Styling */
+    .win-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      animation: fadeIn 1s ease-in forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Memory Card Game</h1>
+    <div class="game-container" id="gameContainer"></div>
+    <div class="win-message" id="winMessage">🎉 You Won! 🎉</div>
+  </div>
+
+  <script>
+    // JavaScript Code
+    const gameContainer = document.getElementById('gameContainer');
+    const winMessage = document.getElementById('winMessage');
+    const icons = ['🍎', '🍌', '🍇', '🍓', '🍑', '🥝'];
+    const cards = [...icons, ...icons]; // Duplicate icons to create pairs
+    let flippedCards = [];
+    let matchedPairs = 0;
+
+    // Shuffle cards
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Create card elements
+    function createCards() {
+      shuffle(cards).forEach(icon => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">?</div>
+            <div class="card-back">${icon}</div>
+          </div>
+        `;
+        card.addEventListener('click', onCardClick);
+        gameContainer.appendChild(card);
+      });
+    }
+
+    // Card click logic
+    function onCardClick(event) {
+      const clickedCard = event.currentTarget;
+
+      // Prevent clicking more than 2 cards at a time or on already flipped cards
+      if (flippedCards.length === 2 || clickedCard.classList.contains('flipped')) return;
+
+      clickedCard.classList.add('flipped');
+      flippedCards.push(clickedCard);
+
+      // Check for match
+      if (flippedCards.length === 2) {
+        checkForMatch();
+      }
+    }
+
+    // Check if flipped cards match
+    function checkForMatch() {
+      const [card1, card2] = flippedCards;
+      const icon1 = card1.querySelector('.card-back').textContent;
+      const icon2 = card2.querySelector('.card-back').textContent;
+
+      if (icon1 === icon2) {
+        matchedPairs++;
+        flippedCards = [];
+
+        // Check if all pairs are matched
+        if (matchedPairs === icons.length) {
+          setTimeout(() => {
+            winMessage.style.opacity = 1;
+          }, 500);
+        }
+      } else {
+        // Unflip cards if they don't match
+        setTimeout(() => {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+
+    // Initialize game
+    createCards();
+  </script>
+</body>
+</html>
